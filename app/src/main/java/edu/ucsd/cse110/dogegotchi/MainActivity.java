@@ -17,6 +17,7 @@ import java.util.Map;
 
 import edu.ucsd.cse110.dogegotchi.daynightcycle.DayNightCycleMediator;
 import edu.ucsd.cse110.dogegotchi.doge.Doge;
+import edu.ucsd.cse110.dogegotchi.doge.DogePresenter;
 import edu.ucsd.cse110.dogegotchi.doge.DogeView;
 import edu.ucsd.cse110.dogegotchi.sprite.Coord;
 import edu.ucsd.cse110.dogegotchi.ticker.AsyncTaskTicker;
@@ -57,6 +58,8 @@ public class MainActivity extends Activity {
         this.nightPlayer = MediaPlayer.create(this, R.raw.night_time);
 
         /**
+         * TODO: Exercise 1 -- Observer
+         *
          * create day night cycle tracker
          * Note: we implemented this for you, but do read the code to understand it.
          */
@@ -64,12 +67,6 @@ public class MainActivity extends Activity {
         this.dayNightCycleMediator = new DayNightCycleMediator(ticksPerPeriod);
         ticker.register(this.dayNightCycleMediator);
 
-        /**
-         * TODO: Exercise 1 -- Observer
-         *
-         * - You'll have to make doge's state change from Happy/Sad at night to Sleeping.
-         * - In the morning, doge should go to happy state. See write-up.
-         */
         // create the almighty doge
         createDoge(ticksPerPeriod);
         ticker.register(this.doge);
@@ -80,6 +77,8 @@ public class MainActivity extends Activity {
 
         ticker.register(gameView);
         this.dayNightCycleMediator.register(gameView);
+
+        this.dayNightCycleMediator.register(this.doge);
 
         /**
          * TODO: Exercise 2 -- MVP
@@ -98,7 +97,24 @@ public class MainActivity extends Activity {
         final ImageButton hamButton       = foodMenu.findViewById(R.id.HamButton),
                           steakButton     = foodMenu.findViewById(R.id.SteakButton),
                           turkeyLegButton = foodMenu.findViewById(R.id.TurkeyLegButton);
-        // hm... should prob do something with this
+
+        DogePresenter dogePresenter = new DogePresenter(this.doge, foodMenu);
+        this.doge.register(dogePresenter);
+
+        hamButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { dogePresenter.onFoodSelected(); }
+        });
+
+        steakButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { dogePresenter.onFoodSelected(); }
+        });
+
+        turkeyLegButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { dogePresenter.onFoodSelected(); }
+        });
 
         /**
          * TODO: Exercise 3 -- Strategy & Factory
@@ -176,7 +192,19 @@ public class MainActivity extends Activity {
                         new Coord(getResources().getInteger(R.integer.sleeping_x),
                                   getResources().getInteger(R.integer.sleeping_y)));
 
+        stateBitmaps.put(Doge.State.SAD,
+                BitmapFactory.decodeResource(getResources(), R.drawable.sad_2x));
+        stateCoords.put(Doge.State.SAD,
+                new Coord(getResources().getInteger(R.integer.sad_x),
+                        getResources().getInteger(R.integer.sad_y)));
+
         // TODO: Exercise 2 - Set up sprite and coords for EATING state.
+        stateBitmaps.put(Doge.State.EATING,
+                BitmapFactory.decodeResource(getResources(), R.drawable.eating_2x));
+        stateCoords.put(Doge.State.EATING,
+                new Coord(getResources().getInteger(R.integer.eating_x),
+                        getResources().getInteger(R.integer.eating_y)));
+
         // TODO: Exercise 3 - You may need to create the Factory of Strategies here
         this.dogeView = new DogeView(this, Doge.State.HAPPY, stateBitmaps, stateCoords);
 
